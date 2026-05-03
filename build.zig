@@ -56,6 +56,13 @@ pub fn build(b: *std.Build) void {
     exe.root_module.addImport("raylib", raylib);
     exe.root_module.addImport("raygui", raygui);
 
+    exe.root_module.addIncludePath(b.path("spine-runtimes/spine-c/spine-c/include/"));
+    exe.root_module.addLibraryPath(b.path("spine-runtimes/spine-c/build/"));
+    exe.root_module.linkSystemLibrary("spine-c", .{
+        .use_pkg_config = .yes,
+        .preferred_link_mode = .static,
+    });
+
     const test_step = b.step("test", "Run tests");
     test_step.dependOn(&run_mod_tests.step);
     test_step.dependOn(&run_exe_tests.step);
