@@ -32,9 +32,11 @@ pub fn main(init: std.process.Init) !void {
         .sam_skeleton_path = c_sam_json,
     };
 
+    std.log.info("value in bootstramp {any}", .{bootstrap});
+
     var ctx = try game_ctx.GameContext.init(&bootstrap);
 
-    ctx.run();
+    try ctx.run();
 
     defer ctx.deinit();
 }

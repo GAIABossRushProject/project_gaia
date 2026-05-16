@@ -36,7 +36,7 @@ pub const GameContext = struct {
         };
     }
 
-    pub fn run(self: *Self) void {
+    pub fn run(self: *Self) !void {
         raylib.initWindow(
             self.settings.setting_json.value.windows.width,
             self.settings.setting_json.value.windows.height,
@@ -48,7 +48,7 @@ pub const GameContext = struct {
         while (!raylib.windowShouldClose()) {
             raylib.beginDrawing();
             defer raylib.endDrawing();
-            try self.scene_manager.update();
+            try self.scene_manager.update(self);
 
             raylib.clearBackground(.black);
             try self.scene_manager.draw();

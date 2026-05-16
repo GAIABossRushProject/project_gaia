@@ -13,6 +13,7 @@ pub const World = struct {
     const Self = @This();
 
     pub fn init(asset: *asset_manager.AssetManager) !Self {
+        std.log.info("asset manager {any}", .{asset});
         if (asset.get_blueprint("sam")) |blueprint| {
             const p = player.Player.init(blueprint);
             return Self{
@@ -29,5 +30,10 @@ pub const World = struct {
 
     pub fn draw(self: *Self) void {
         self.player.draw();
+    }
+
+    pub fn deinit(self: *Self) void {
+        std.log.debug("destroying player", .{});
+        self.player.deinit();
     }
 };

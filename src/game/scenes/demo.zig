@@ -9,9 +9,9 @@ pub const DemoScene = struct {
     const Self = @This();
 
     pub fn init(ctx: *game_ctx.GameContext) !Self {
-        const w = try world.World.init();
+        const w = try world.World.init(&ctx.asset_manager);
         return Self{
-            .allocator = ctx.*,
+            .allocator = ctx.*.allocator,
             .world = w,
         };
     }
@@ -22,5 +22,9 @@ pub const DemoScene = struct {
 
     pub fn draw(self: *Self) void {
         self.world.draw();
+    }
+
+    pub fn deinit(self: *Self) void {
+        self.world.deinit();
     }
 };

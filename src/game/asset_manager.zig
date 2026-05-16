@@ -23,8 +23,11 @@ pub const AssetManager = struct {
 
     pub fn load_asset(self: *Self, asset_name: []const u8, atlas_path: [*c]const u8, skeleton_path: [*c]const u8) !void {
         const sam_atlas = spine.spAtlas_createFromFile(atlas_path, null);
-        const sam_skeleton = spine.spSkeletonJson_readSkeletonDataFile(skeleton_path);
+        const parser = spine.spSkeletonJson_create(sam_atlas);
+        const sam_skeleton = spine.spSkeletonJson_readSkeletonDataFile(parser, skeleton_path);
         const sam_animation_state_data = spine.spAnimationStateData_create(sam_skeleton);
+
+        spine.spSkeletonJson_dispose(parser);
 
         const blueprint = SpineBlueprint{
             .atlas = sam_atlas,

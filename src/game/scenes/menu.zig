@@ -7,13 +7,13 @@ pub const MenuItems = enum {
     Test,
 };
 
-const total_items: u8 = 2;
+const total_items: i8 = 1;
 
 pub const MenuScene = struct {
     items: MenuItems,
     cursor: Cursor,
     demoBox: raylib.Rectangle,
-    selected_index: u8,
+    selected_index: i8,
     aimBox: raylib.Rectangle,
     const Self = @This();
 
@@ -34,7 +34,7 @@ pub const MenuScene = struct {
 
         const cursor = Cursor.init();
         return Self{
-            .selected_index = 1,
+            .selected_index = 0,
             .items = .None,
             .cursor = cursor,
             .demoBox = demoBox,
@@ -45,18 +45,12 @@ pub const MenuScene = struct {
     pub fn update(self: *Self) void {
         self.cursor.update();
 
-        std.debug.print("current menu status is {}\n", .{self.items});
-
-        if (self.cursor.selected_index == 1 and raylib.isKeyPressed(.enter)) {
+        if (self.cursor.selected_index == 0 and raylib.isKeyPressed(.enter)) {
             self.items = .Demo;
-
-            std.debug.print("scene switched to demo\n", .{});
         }
 
-        if (self.cursor.selected_index == 2 and raylib.isKeyPressed(.enter)) {
+        if (self.cursor.selected_index == 1 and raylib.isKeyPressed(.enter)) {
             self.items = .Test;
-
-            std.debug.print("scene switched to test\n", .{});
         }
     }
 
@@ -132,21 +126,19 @@ const Cursor = struct {
             self.position.y += 100;
             self.selected_index += 1;
 
-            std.debug.print("am I updating my index?\n", .{});
-
             if (self.selected_index > total_items) {
-                self.selected_index = 1;
+                self.selected_index = 0;
                 self.position.y = 120;
             }
         }
 
         if (raylib.isKeyPressed(.up)) {
-            self.position.y -= 100;
-            self.selected_index -= 1;
-
-            if (self.selected_index < 1) {
-                self.selected_index = 1;
+            if (self.selected_index < 0) {
+                self.selected_index = 0;
                 self.position.y = 120;
+            } else {
+                self.position.y -= 100;
+                self.selected_index -= 1;
             }
         }
     }

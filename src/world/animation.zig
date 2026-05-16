@@ -8,38 +8,30 @@ const asset_mananger = @import("../game/asset_manager.zig");
 //
 pub const Animate = struct {
     animationState: [*c]spine.spAnimationState,
-    animationStateData: [*c]spine.spAnimationStateData,
-    skeleton_data: [*c]spine.spSkeletonData,
+    atlas: [*c]spine.spAtlas,
+    skeleton: [*c]spine.spSkeleton,
     current_animation: [*c]const u8,
-    physics: physics.ActorPhysics,
-    aim_vec: raylib.Vector2,
+    // physics: physics.ActorPhysics,
     current_scale: f32,
 
     const Self = @This();
 
     pub fn init(blueprint: asset_mananger.SpineBlueprint) !Self {
         const skeleton = spine.spSkeleton_create(blueprint.skeleton_data);
-        const animationStateData = spine.spAnimationStateData_create(skeleton);
-        const animationState = spine.spAnimationState_create(animationStateData);
+        const animationState = spine.spAnimationState_create(blueprint.animation_state_data);
 
         skeleton.*.scaleY = -0.25;
         skeleton.*.scaleX = 0.25;
 
         const scale = 0.25;
 
-        // spine.spSkeletonJson_dispose(parser);
-
         return Self{
             // .physics = p.*,
             .animationState = animationState,
             .skeleton = skeleton,
             .current_animation = "default",
-            .animationStateData = animationStateData,
+            .atlas = blueprint.atlas,
             .current_scale = scale,
-            .aim_vec = raylib.Vector2{
-                .x = 0,
-                .y = 0,
-            },
         };
     }
     //
@@ -50,13 +42,12 @@ pub const Animate = struct {
         self.current_scale = scale_x;
     }
 
-    pub fn update(self: *Self, position: raylib.Vector2, desired_animation: [*c]const u8, is_left: bool, adjustment: f32) void {
-        sync_player_visuals(self, position, adjustment);
+    pub fn update(self: *Self, position: raylib.Vector2, desired_animation: [*c]const u8, is_left: bool) void {
+        sync_player_visuals(self, position);
         advance_animation(self, desired_animation, is_left);
     }
 
-    pub fn sync_player_visuals(self: *Self, positon: raylib.Vector2, adjustment: f32) void {
-        _ = adjustment;
+    pub fn sync_player_visuals(self: *Self, positon: raylib.Vector2) void {
         self.skeleton.*.x = positon.x;
         self.skeleton.*.y = positon.y;
     }
@@ -168,14 +159,14 @@ pub const Animate = struct {
                     @intFromFloat(slot.*.color.a * 255.0),
                 );
 
-                rlgl.rlTexCoord2f(regionAttacment.*.uvs[0], regionAttacment.*.uvs[1]);
+                rlgl.rlTexCoord2f(regionAttacment[0].uvs[0], regionAttacment[0].uvs[1]);
                 rlgl.rlVertex2f(vertices[0], vertices[1]);
-
-                rlgl.rlTexCoord2f(regionAttacment.*.uvs[2], regionAttacment.*.uvs[3]);
+                //
+                rlgl.rlTexCoord2f(regionAttacment[0].uvs[2], regionAttacment[0].uvs[3]);
                 rlgl.rlVertex2f(vertices[2], vertices[3]);
-                rlgl.rlTexCoord2f(regionAttacment.*.uvs[4], regionAttacment.*.uvs[5]);
+                rlgl.rlTexCoord2f(regionAttacment[0].uvs[4], regionAttacment[0].uvs[5]);
                 rlgl.rlVertex2f(vertices[4], vertices[5]);
-                rlgl.rlTexCoord2f(regionAttacment.*.uvs[6], regionAttacment.*.uvs[7]);
+                rlgl.rlTexCoord2f(regionAttacment[0].uvs[6], regionAttacment[0].uvs[7]);
                 rlgl.rlVertex2f(vertices[6], vertices[7]);
                 rlgl.rlEnd();
                 rlgl.rlDrawRenderBatchActive();
@@ -241,8 +232,6 @@ pub const Animate = struct {
     pub fn deinit(self: *Self) void {
         spine.spAnimationState_dispose(self.animationState);
         spine.spSkeleton_dispose(self.skeleton);
-        spine.spAnimationStateData_dispose(self.animationStateData);
-        spine.spSkeletonData_dispose(self.skeleton_data);
         spine.spAtlas_dispose(self.atlas);
     }
 };

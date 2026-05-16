@@ -2,15 +2,16 @@ const std = @import("std");
 const title = @import("scenes/title.zig");
 const menu = @import("scenes/menu.zig");
 const demo = @import("scenes/demo.zig");
+const game_ctx = @import("game_ctx.zig");
 // const vexia = @import("vexia/phase1.zig");
 // const menu = @import("menu.zig");
 // const game_over = @import("game_over.zig");
 // const aim_demo = @import("aim_testing.zig");
 
 pub const SceneUnion = union(enum) {
-    title_screen: title.TitleScreen,
-    menu_screen: menu.MenuScene,
-    // demo_screen: demo.DemoScene,
+    title_scene: title.TitleScreen,
+    menu_scene: menu.MenuScene,
+    demo_scene: demo.DemoScene,
     // vexia_phase1: vexia.VexiaPhase1,
     // game_over: game_over.GameOver,
     // aim_test: aim_demo.AimTest,
@@ -23,32 +24,35 @@ pub const SceneManager = struct {
 
     pub fn init() Self {
         return Self{
-            .current_scene = .{ .title_screen = title.TitleScreen.init() },
+            .current_scene = .{ .title_scene = title.TitleScreen.init() },
         };
     }
 
-    pub fn update(self: *Self) !void {
+    pub fn update(self: *Self, ctx: *game_ctx.GameContext) !void {
         switch (self.current_scene) {
-            .title_screen => |*scene| {
+            .title_scene => |*scene| {
                 scene.update();
                 if (scene.exit()) {
                     std.debug.print("exit has been reached\n", .{});
                     scene.deinit();
-                    self.current_scene = .{ .menu_screen = menu.MenuScene.init() };
+                    self.current_scene = .{ .menu_scene = menu.MenuScene.init() };
                 }
             },
-            .menu_screen => |*scene| {
+            .menu_scene => |*scene| {
                 scene.update();
 
                 if (scene.items == .Demo) {
-                    const d = demo.DemoScene.init();
+                    const d = try demo.DemoScene.init(ctx);
+                    self.current_scene = .{
+                        .demo_scene = d,
+                    };
                 }
             },
-            // .demo_scene => |*scene |{
-            //     scene.up
-            // }
+            .demo_scene => |*scene| {
+                scene.update();
+            },
         }
-        //     .test_screen => |*scene| {
+        //     .test_scene => |*scene| {
         //         scene.update();
         //
         //         if (scene.player.dead) {
@@ -59,10 +63,10 @@ pub const SceneManager = struct {
         //             self.current_scene = .{ .game_over = go };
         //         }
         //     },
-        //     .menu_screen => |*scene| {
+        //     .menu_scene => |*scene| {
         //         if (scene.get_state() == .ItemDemo) {
         //             const d = try demo.DemoScene.init();
-        //             self.current_scene = .{ .test_screen = d };
+        //             self.current_scene = .{ .test_scene = d };
         //         }
         //
         //         if (scene.get_state() == .ItemPhase1) {
@@ -97,15 +101,15 @@ pub const SceneManager = struct {
 
     pub fn draw(self: *Self) !void {
         switch (self.current_scene) {
-            .title_screen => |*scene| {
+            .title_scene => |*scene| {
                 scene.draw();
             },
-            .menu_screen => |*scene| {
+            .menu_scene => |*scene| {
                 scene.draw();
             },
-            // .test_screen => |*scene| {
-            //     try scene.draw();
-            // },
+            .demo_scene => |*scene| {
+                scene.draw();
+            },
             // .vexia_phase1 => |*scene| {
             //     try scene.draw();
             // },
@@ -121,19 +125,19 @@ pub const SceneManager = struct {
     pub fn deinit(self: *Self) void {
         std.debug.print("scene during destruction {}\n", .{self.current_scene});
         switch (self.current_scene) {
-            .title_screen => |*scene| {
+            .title_scene => |*scene| {
                 scene.deinit();
             },
-            .menu_screen => |*scene| {
+            .menu_scene => |*scene| {
                 scene.deinit();
             },
-            // .test_screen => |*scene| {
-            //     scene.deinit();
-            // },
+            .demo_scene => |*scene| {
+                scene.deinit();
+            },
             // .vexia_phase1 => |*scene| {
             //     scene.deinit();
             // },
-            // .menu_screen => |*scene| {
+            // .menu_scene => |*scene| {
             //     scene.deinit();
             // },
             // .game_over => |*scene| {
