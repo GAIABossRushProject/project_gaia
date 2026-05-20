@@ -3,6 +3,7 @@ const raylib = @import("raylib");
 const settings = @import("settings_manager.zig");
 const scene_manager = @import("scene_manager.zig");
 const asset_manager = @import("asset_manager.zig");
+const input_manager = @import("input_manager.zig");
 
 const game_errors = error{
     ErrorBadSettings,
@@ -20,6 +21,8 @@ pub const GameContext = struct {
     settings: settings.SettingsManager,
     scene_manager: scene_manager.SceneManager,
     asset_manager: asset_manager.AssetManager,
+    input_manager: input_manager.InputManager,
+    bootstrap: Bootstrap,
     allocator: std.mem.Allocator,
     const Self = @This();
 
@@ -27,13 +30,20 @@ pub const GameContext = struct {
         const s = try settings.SettingsManager.init(bootstrap.*.io, bootstrap.*.settings_path, bootstrap.*.allocator);
         const sm = scene_manager.SceneManager.init();
         const am = asset_manager.AssetManager.init(bootstrap.*.allocator);
+        const im = input_manager.InputManager.init();
 
         return Self{
             .settings = s,
             .scene_manager = sm,
             .asset_manager = am,
+            .bootstrap = bootstrap.*,
             .allocator = bootstrap.*.allocator,
+            .input_manager = im,
         };
+    }
+
+    pub fn register_game_assets(self: *Self) !void {
+        try self.asset_manager.load_asset("sam", self.bootstrap.sam_atlas_path, self.bootstrap.sam_skeleton_path);
     }
 
     pub fn run(self: *Self) !void {
@@ -42,6 +52,8 @@ pub const GameContext = struct {
             self.settings.setting_json.value.windows.height,
             "GAIA: Echoes Of Geneis",
         );
+
+        try self.register_game_assets();
 
         raylib.setTargetFPS(self.settings.setting_json.value.fps);
 

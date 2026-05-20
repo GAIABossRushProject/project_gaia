@@ -1,11 +1,11 @@
 const std = @import("std");
 
-var gpa: std.heap.DebugAllocator(.{}) = .init;
+var gpa: std.heap.DebugAllocator(.{}) = undefined;
 var is_initialized = false;
 
-pub fn init(allocator: std.mem.Allocator) !void {
+pub fn init() !void {
     std.debug.assert(!is_initialized);
-    gpa = allocator;
+    gpa = std.heap.DebugAllocator(.{}).init;
 
     is_initialized = true;
 }

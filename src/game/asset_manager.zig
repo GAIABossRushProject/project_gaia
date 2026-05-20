@@ -45,10 +45,20 @@ pub const AssetManager = struct {
     pub fn deinit(self: *Self) void {
         var asset_iterator = self.asset_map.valueIterator();
 
+        std.log.info("value in asset_map {}", .{self.asset_map});
+
         while (asset_iterator.next()) |entry| {
-            spine.spAtlas_dispose(entry.atlas);
-            spine.spAnimationStateData_dispose(entry.animation_state_data);
-            spine.spSkeletonData_dispose(entry.skeleton_data);
+            if (entry.*.atlas != null) {
+                spine.spAtlas_dispose(entry.*.atlas);
+            }
+
+            if (entry.*.animation_state_data != null) {
+                spine.spAnimationStateData_dispose(entry.*.animation_state_data);
+            }
+
+            if (entry.*.skeleton_data != null) {
+                spine.spSkeletonData_dispose(entry.*.skeleton_data);
+            }
         }
 
         self.asset_map.deinit();
@@ -66,6 +76,7 @@ pub export fn _spAtlasPage_disposeTexture(atlas: [*c]spine.spAtlasPage) void {
 }
 
 pub export fn _spAtlasPage_createTexture(atlas: [*c]spine.spAtlasPage, path: [*c]const u8) void {
+    try app_allocator.init();
     const allocator = app_allocator.get();
 
     const texture_alloc = allocator.create(raylib.Texture) catch |err| {

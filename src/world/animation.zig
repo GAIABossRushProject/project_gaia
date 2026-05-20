@@ -6,11 +6,13 @@ const rlgl = raylib.gl;
 const physics = @import("physics.zig");
 const asset_mananger = @import("../game/asset_manager.zig");
 //
+//
+
 pub const Animate = struct {
     animationState: [*c]spine.spAnimationState,
     atlas: [*c]spine.spAtlas,
     skeleton: [*c]spine.spSkeleton,
-    current_animation: [*c]const u8,
+    current_lower_body: [*c]const u8,
     // physics: physics.ActorPhysics,
     current_scale: f32,
 
@@ -29,7 +31,7 @@ pub const Animate = struct {
             // .physics = p.*,
             .animationState = animationState,
             .skeleton = skeleton,
-            .current_animation = "default",
+            .current_lower_body = "default",
             .atlas = blueprint.atlas,
             .current_scale = scale,
         };
@@ -40,6 +42,10 @@ pub const Animate = struct {
         self.skeleton.*.scaleY = scale_y;
 
         self.current_scale = scale_x;
+    }
+
+    pub fn ticker(self: *Self) void {
+        spine.spAnimationState_update(self.animationState, raylib.getFrameTime());
     }
 
     pub fn update(self: *Self, position: raylib.Vector2, desired_animation: [*c]const u8, is_left: bool) void {
@@ -95,6 +101,22 @@ pub const Animate = struct {
         _ = spine.spAnimationState_setAnimationByName(self.animationState, 1, desired_animation, loop_int);
 
         self.aim_vec = aim_vec;
+    }
+
+    pub fn set_lower_body(
+        self: *Self,
+        desired_animation: [*c]const u8,
+        position: raylib.Vector2,
+        is_left: bool,
+        is_looping: bool,
+    ) void {
+        self.sync_player_visuals(position);
+        const loop_int: c_int = if (is_looping) 0 else 1;
+
+        if (is_left) self.skeleton.*.x += position.x else self.skeleton.*.x -= position.x;
+        self.skeleton.*.y += position.y;
+
+        _ = spine.spAnimationState_setAnimationByName(self.animationState, 0, desired_animation, loop_int);
     }
 
     pub fn draw(self: *Self) void {
