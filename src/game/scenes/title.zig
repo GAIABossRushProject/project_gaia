@@ -1,5 +1,7 @@
 const std = @import("std");
 const raylib = @import("raylib");
+const game_ctx = @import("../../game/game_ctx.zig");
+const input_manager = @import("../../game/input_manager.zig");
 
 pub const TitleScreen = struct {
     should_draw_text: bool,
@@ -8,16 +10,18 @@ pub const TitleScreen = struct {
     display_cooldown: f32,
     threshold: u8,
     is_exit: bool,
+    input_manager: input_manager.InputManager,
 
     const Self = @This();
 
-    pub fn init() Self {
+    pub fn init(ctx: *game_ctx.GameContext) Self {
         std.log.info("loading title screen", .{});
 
         return Self{
             .should_draw_text = false,
             .delay = 2.0,
             .timer = 0.0,
+            .input_manager = ctx.input_manager,
             .display_cooldown = 2.0,
             .threshold = 0,
             .is_exit = false,
@@ -42,7 +46,7 @@ pub const TitleScreen = struct {
             }
         }
 
-        if (raylib.isKeyDown(.space)) {
+        if (self.input_manager.confirmDown(.Confirm)) {
             self.is_exit = true;
         }
     }

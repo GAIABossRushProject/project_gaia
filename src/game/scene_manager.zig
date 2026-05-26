@@ -22,9 +22,9 @@ pub const SceneManager = struct {
 
     const Self = @This();
 
-    pub fn init() Self {
+    pub fn init(ctx: *game_ctx.GameContext) Self {
         return Self{
-            .current_scene = .{ .title_scene = title.TitleScreen.init() },
+            .current_scene = .{ .title_scene = title.TitleScreen.init(ctx) },
         };
     }
 

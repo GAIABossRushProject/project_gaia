@@ -13,6 +13,8 @@ pub const Animate = struct {
     atlas: [*c]spine.spAtlas,
     skeleton: [*c]spine.spSkeleton,
     current_lower_body: [*c]const u8,
+    current_upper_body: [*c]const u8,
+    aim_vec: raylib.Vector2,
     // physics: physics.ActorPhysics,
     current_scale: f32,
 
@@ -26,14 +28,17 @@ pub const Animate = struct {
         skeleton.*.scaleX = 0.25;
 
         const scale = 0.25;
+        const aim_vec = raylib.Vector2{ .x = 0.0, .y = 0.0 };
 
         return Self{
             // .physics = p.*,
             .animationState = animationState,
             .skeleton = skeleton,
-            .current_lower_body = "default",
+            .current_lower_body = "idle",
+            .current_upper_body = "idle",
             .atlas = blueprint.atlas,
             .current_scale = scale,
+            .aim_vec = aim_vec,
         };
     }
     //
@@ -84,21 +89,31 @@ pub const Animate = struct {
         spine.spAnimationState_update(self.animationState, raylib.getFrameTime());
     }
 
-    pub fn update_upper_body(
+    pub fn set_empty(self: *Self) void {
+        _ = spine.spAnimationState_setEmptyAnimation(self.animationState, 1, 0.2);
+
+        self.current_upper_body = "empty";
+    }
+
+    pub fn set_upper_body(
         self: *Self,
         position: raylib.Vector2,
         desired_animation: [*c]const u8,
-        aim_vec: raylib.Vector2,
-        adjustment: f32,
         loop: bool,
+        aim_vec: raylib.Vector2,
     ) void {
         self.sync_player_visuals(
             position,
-            adjustment,
         );
-        const loop_int: c_int = if (loop) 0 else 1;
+        const loop_int: c_int = if (loop) 1 else 0;
 
-        _ = spine.spAnimationState_setAnimationByName(self.animationState, 1, desired_animation, loop_int);
+        const z_current: []const u8 = std.mem.span(self.current_upper_body);
+        const z_desired: []const u8 = std.mem.span(desired_animation);
+
+        if (!std.mem.eql(u8, z_current, z_desired)) {
+            self.current_upper_body = desired_animation;
+            _ = spine.spAnimationState_setAnimationByName(self.animationState, 1, self.current_upper_body, loop_int);
+        }
 
         self.aim_vec = aim_vec;
     }
@@ -111,18 +126,26 @@ pub const Animate = struct {
         is_looping: bool,
     ) void {
         self.sync_player_visuals(position);
-        const loop_int: c_int = if (is_looping) 0 else 1;
+        const loop_int: c_int = if (is_looping) 1 else 0;
 
-        if (is_left) self.skeleton.*.x += position.x else self.skeleton.*.x -= position.x;
-        self.skeleton.*.y += position.y;
+        if (is_left) self.skeleton.*.scaleX = -0.25 else self.skeleton.*.scaleX = 0.25;
 
-        _ = spine.spAnimationState_setAnimationByName(self.animationState, 0, desired_animation, loop_int);
+        self.skeleton.*.x += position.x;
+
+        const z_desire: []const u8 = std.mem.span(desired_animation);
+        const z_current: []const u8 = std.mem.span(self.current_lower_body);
+        if (!std.mem.eql(u8, z_desire, z_current)) {
+            self.current_lower_body = desired_animation;
+
+            const curret_animation = std.mem.span(self.current_lower_body);
+            _ = spine.spAnimationState_setAnimationByName(self.animationState, 0, curret_animation, loop_int);
+        }
     }
 
     pub fn draw(self: *Self) void {
         // rlgl.rlDisableScissorTest();
         // const bone = spine.spSkeleton_findBone(self.skeleton, "hip");
-        // const aim = spine.spSkeleton_findBone(self.skeleton, "crosshair");
+        const aim = spine.spSkeleton_findBone(self.skeleton, "crosshair");
         //
         _ = spine.spAnimationState_apply(self.animationState, self.skeleton);
 
@@ -131,10 +154,10 @@ pub const Animate = struct {
         //     bone.*.y = bone.*.data.*.y;
         // }
         //
-        // if (aim != null) {
-        //     aim.*.x = self.aim_vec.x;
-        //     aim.*.y = self.aim_vec.y;
-        // }
+        if (aim != null) {
+            aim.*.x = self.aim_vec.x;
+            aim.*.y = self.aim_vec.y;
+        }
 
         spine.spSkeleton_updateWorldTransform(self.skeleton, spine.SP_PHYSICS_UPDATE);
         rlgl.rlDisableBackfaceCulling();
@@ -254,6 +277,5 @@ pub const Animate = struct {
     pub fn deinit(self: *Self) void {
         spine.spAnimationState_dispose(self.animationState);
         spine.spSkeleton_dispose(self.skeleton);
-        spine.spAtlas_dispose(self.atlas);
     }
 };

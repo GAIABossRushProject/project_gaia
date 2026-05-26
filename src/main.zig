@@ -10,6 +10,7 @@ const game_ctx = @import("game/game_ctx.zig");
 const settings = @import("game/settings_manager.zig");
 const world = @import("world/world.zig");
 const input = @import("game/input_manager.zig");
+const tile_maps = @import("world/tile_maps/tile_map.zig");
 
 pub fn main(init: std.process.Init) !void {
     const cli_args = try init.minimal.args.toSlice(init.arena.allocator());

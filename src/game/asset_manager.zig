@@ -48,16 +48,16 @@ pub const AssetManager = struct {
         std.log.info("value in asset_map {}", .{self.asset_map});
 
         while (asset_iterator.next()) |entry| {
-            if (entry.*.atlas != null) {
-                spine.spAtlas_dispose(entry.*.atlas);
+            if (entry.atlas != null) {
+                spine.spAtlas_dispose(entry.atlas);
             }
 
-            if (entry.*.animation_state_data != null) {
-                spine.spAnimationStateData_dispose(entry.*.animation_state_data);
+            if (entry.animation_state_data != null) {
+                spine.spAnimationStateData_dispose(entry.animation_state_data);
             }
 
-            if (entry.*.skeleton_data != null) {
-                spine.spSkeletonData_dispose(entry.*.skeleton_data);
+            if (entry.skeleton_data != null) {
+                spine.spSkeletonData_dispose(entry.skeleton_data);
             }
         }
 

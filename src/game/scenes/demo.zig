@@ -25,15 +25,33 @@ pub const DemoScene = struct {
             .movement_x = 0.0,
             .movement_y = 0.0,
             .jump_pressed = self.input_manager.movementDown(.JUMP),
+            .shoot_pressed = false,
+            .aim_x = 0.0,
+            .aim_y = 0.0,
         };
 
         if (self.input_manager.movementDown(.RIGHT)) {
             intent.movement_x += 1.0;
+            intent.aim_x += 1.0;
         }
 
         if (self.input_manager.movementDown(.LEFT)) {
             intent.movement_x -= 1.0;
+            intent.aim_x -= 1.0;
         }
+
+        if (self.input_manager.actionPressed(.Shoot)) {
+            intent.shoot_pressed = true;
+        }
+
+        if (self.input_manager.movementDown(.UP)) {
+            intent.aim_y += 1.0;
+        }
+
+        if (self.input_manager.movementDown(.DOWN)) {
+            intent.aim_y -= 1.0;
+        }
+
         self.world.update(intent);
     }
 

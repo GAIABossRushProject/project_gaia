@@ -27,19 +27,18 @@ pub const GameContext = struct {
     const Self = @This();
 
     pub fn init(bootstrap: *Bootstrap) !Self {
-        const s = try settings.SettingsManager.init(bootstrap.*.io, bootstrap.*.settings_path, bootstrap.*.allocator);
-        const sm = scene_manager.SceneManager.init();
-        const am = asset_manager.AssetManager.init(bootstrap.*.allocator);
-        const im = input_manager.InputManager.init();
-
-        return Self{
-            .settings = s,
-            .scene_manager = sm,
-            .asset_manager = am,
-            .bootstrap = bootstrap.*,
+        var context = Self{
+            .settings = try settings.SettingsManager.init(bootstrap.*.io, bootstrap.*.settings_path, bootstrap.*.allocator),
+            .input_manager = input_manager.InputManager.init(),
+            .asset_manager = asset_manager.AssetManager.init(bootstrap.*.allocator),
             .allocator = bootstrap.*.allocator,
-            .input_manager = im,
+            .bootstrap = bootstrap.*,
+            .scene_manager = undefined,
         };
+
+        context.scene_manager = scene_manager.SceneManager.init(&context);
+
+        return context;
     }
 
     pub fn register_game_assets(self: *Self) !void {
@@ -54,6 +53,12 @@ pub const GameContext = struct {
         );
 
         try self.register_game_assets();
+
+        const cf = raylib.ConfigFlags{
+            .window_highdpi = true,
+        };
+
+        raylib.setConfigFlags(cf);
 
         raylib.setTargetFPS(self.settings.setting_json.value.fps);
 
