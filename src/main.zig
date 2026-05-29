@@ -27,8 +27,7 @@ pub fn main(init: std.process.Init) !void {
     };
 
     var ctx = try game_ctx.GameContext.init(&bootstrap);
+    defer ctx.deinit();
 
     try ctx.run();
-
-    defer ctx.deinit();
 }

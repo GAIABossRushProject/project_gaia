@@ -17,9 +17,19 @@ pub const SettingsManager = struct {
     const Self = @This();
 
     pub fn init(io: std.Io, path: []const u8, allocator: std.mem.Allocator) !Self {
-        const settings_file = try std.Io.Dir.cwd().readFileAlloc(io, path, allocator, std.Io.Limit.limited(1024));
+        const settings_file = try std.Io.Dir.cwd().readFileAlloc(
+            io,
+            path,
+            allocator,
+            std.Io.Limit.limited(1024),
+        );
 
-        const json = try std.json.parseFromSlice(SettingJson, allocator, settings_file, .{});
+        const json = try std.json.parseFromSlice(
+            SettingJson,
+            allocator,
+            settings_file,
+            .{},
+        );
 
         return Self{
             .setting_json = json,
